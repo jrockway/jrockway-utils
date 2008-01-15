@@ -45,7 +45,7 @@ for my $dist (@dists){
         my $pushd = pushd($dist) or die "Failed to chdir to $dist: $!";
         my ($builder) = grep { -e } keys %MAKE_TEST;
         die "No build file for $dist" unless $builder;
-        `perl $builder >/dev/null 2>&1`; # taint mode loves this
+        `perl $builder >/dev/null 2>&1 </dev/null`; # taint mode loves this
         my ($status, @lines) = $MAKE_TEST{$builder}->();
         die "Tests failed" if $status;
         my ($stats) = grep { /Files=\d+/ } @lines;
