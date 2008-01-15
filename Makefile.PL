@@ -8,5 +8,6 @@ license 'take what you want';
 requires 'File::Attributes';
 requires 'File::pushd';
 requires 'List::Util';
+requires 'IO::Any';
 
 WriteAll();

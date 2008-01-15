@@ -5,14 +5,25 @@ use warnings;
 use File::pushd;
 use Term::ReadLine;
 use File::Slurp;
+use IO::All;
 
 # proj must never contain shell metachars kthx :)
 
 my $proj = shift @ARGV;
+my @args = @ARGV;
+my $no_cat = grep { /^(?:-n|--no-cat(?:alyst)?)$/ } @args;
+
 `catalystx-starter $proj`;
 $proj =~ s/::/-/g;
 { 
     my $dir = pushd $proj;
+    if($no_cat){
+        `rm -rf t/live-test.t`;
+        `rm -rf t/lib`;
+        my $mf < io 'Makefile.PL';
+        $mf =~ s/^(build_)?requires.+Catalyst.*\n//mg;
+        $mf > io 'Makefile.PL';
+    }
     `git init`;
     rename 'gitignore', '.gitignore';
     `git add * .gitignore`;
