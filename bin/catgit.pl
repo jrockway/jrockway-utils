@@ -13,8 +13,6 @@ use List::Util qw(first);
 my $proj = first { /::/ } @ARGV;
 my $no_cat = grep { /^(?:-n|--no-cat(?:alyst)?)$/ } @ARGV;
 
-die "$proj $no_cat";
-
 `catalystx-starter $proj`;
 $proj =~ s/::/-/g;
 { 
