@@ -6,12 +6,14 @@ use File::pushd;
 use Term::ReadLine;
 use File::Slurp;
 use IO::All;
+use List::Util qw(first);
 
 # proj must never contain shell metachars kthx :)
 
-my $proj = shift @ARGV;
-my @args = @ARGV;
-my $no_cat = grep { /^(?:-n|--no-cat(?:alyst)?)$/ } @args;
+my $proj = first { /::/ } @ARGV;
+my $no_cat = grep { /^(?:-n|--no-cat(?:alyst)?)$/ } @ARGV;
+
+die "$proj $no_cat";
 
 `catalystx-starter $proj`;
 $proj =~ s/::/-/g;
