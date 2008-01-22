@@ -10,11 +10,20 @@ use List::Util qw(first);
 
 # proj must never contain shell metachars kthx :)
 
-my $proj = first { /::/ } @ARGV;
+my $proj = first { /^[^-]/ } @ARGV;
 my $no_cat = grep { /^(?:-n|--no-cat(?:alyst)?)$/ } @ARGV;
+my $plain = grep { /^(?:-!|--empty)/ } @ARGV;
 
-`catalystx-starter $proj`;
-$proj =~ s/::/-/g;
+if($plain){
+    `mkdir $proj`;
+    $proj > io("$proj/README");
+}
+else{
+    `catalystx-starter $proj`;
+}
+
+$proj =~ s/::/-/g unless $plain; # not necessarily a perl project
+
 { 
     my $dir = pushd $proj;
     if($no_cat){
@@ -25,8 +34,15 @@ $proj =~ s/::/-/g;
         $mf > io 'Makefile.PL';
     }
     `git init`;
-    rename 'gitignore', '.gitignore';
-    `git add * .gitignore`;
+
+    if($plain){
+        `git add README`;
+    }
+    else {
+        rename 'gitignore', '.gitignore';
+        `git add * .gitignore`;
+    }
+
     `git ci -m 'initial import'`;
 }
 my $orig = $proj;
