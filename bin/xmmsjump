@@ -1,0 +1,41 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+use 5.010;
+
+use Audio::XMMSClient::Sync;
+
+use Encode qw(decode_utf8);
+
+my $filter = quotemeta(decode_utf8(shift @ARGV)) || die 'need a search term';
+my $offset = shift @ARGV || 1;
+$offset--;
+
+my $xmms = Audio::XMMSClient::Sync->new('xmms-filter');
+$xmms->connect or die "Failed to connect to XMMS server";
+
+my $pos = 0;
+no warnings 'uninitialized';
+my @result =
+  grep { $_->[1] =~ /$filter/i }
+  map  { [ $_, get_title_by_id($xmms, $_), $pos++ ] } get_playlist($xmms);
+
+if(my $result = ($result[$offset] || $result[0])) {
+    $xmms->playlist_set_next($result->[2]);
+    $xmms->playback_tickle;
+    $xmms->playlist->shuffle;
+    $xmms->playback_start;
+
+    say "Playing ", $result->[1];
+}
+
+sub get_playlist {
+    my $xmms = shift;
+    return @{ $xmms->playlist->list_entries };
+}
+
+sub get_title_by_id {
+    my ($xmms, $id) = @_;
+    return decode_utf8( $xmms->medialib_get_info($id)->{title} );
+}
