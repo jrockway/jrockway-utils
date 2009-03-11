@@ -10,9 +10,19 @@ use List::Util qw(first);
 
 # proj must never contain shell metachars kthx :)
 
+if(grep { /-(h|-help)/ } @ARGV){
+    print "Usage: $0 [--no-cat | --empty] Module::Name\n";
+    print " short version: [ -n | -! ]\n";
+    exit 255;
+}
+
 my $proj = first { /^[^-]/ } @ARGV;
 my $no_cat = grep { /^(?:-n|--no-cat(?:alyst)?)$/ } @ARGV;
 my $plain = grep { /^(?:-!|--empty)/ } @ARGV;
+
+if($plain && $no_cat){
+    die q{Only specify 0 or 1 "--no-cat" or "--empty"};
+}
 
 if($plain){
     `mkdir $proj`;

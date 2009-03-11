@@ -5,6 +5,7 @@ use warnings;
 use 5.010;
 
 use Audio::XMMSClient::Sync;
+use DDS;
 
 use Encode qw(decode_utf8);
 
@@ -18,16 +19,17 @@ $xmms->connect or die "Failed to connect to XMMS server";
 my $pos = 0;
 no warnings 'uninitialized';
 my @result =
-  grep { $_->[1] =~ /$filter/i }
+  grep { $_->[1] =~ /$filter/i; }
   map  { [ $_, get_title_by_id($xmms, $_), $pos++ ] } get_playlist($xmms);
 
 if(my $result = ($result[$offset] || $result[0])) {
+    warn Dump($result);
     $xmms->playlist_set_next($result->[2]);
     $xmms->playback_tickle;
     $xmms->playlist->shuffle;
     $xmms->playback_start;
 
-    say "Playing ", $result->[1];
+    say encode_utf8("Playing ". $result->[1]);
 }
 
 sub get_playlist {
@@ -37,5 +39,6 @@ sub get_playlist {
 
 sub get_title_by_id {
     my ($xmms, $id) = @_;
-    return decode_utf8( $xmms->medialib_get_info($id)->{title} );
+    my ($plugin, $name) = %{$xmms->medialib_get_info($id)->{title} || {}};
+    return decode_utf8( $name );
 }
