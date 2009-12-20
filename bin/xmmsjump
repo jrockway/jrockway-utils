@@ -5,9 +5,11 @@ use warnings;
 use 5.010;
 
 use Audio::XMMSClient::Sync;
-use DDS;
 
-use Encode qw(decode_utf8);
+use Encode qw(decode_utf8 encode_utf8);
+
+my $do_list = $ARGV[0] eq '--list-all' and shift @ARGV and 1;
+unshift @ARGV, 'null' if @ARGV == 0; # aha, NOW i know why people hate perl
 
 my $filter = quotemeta(decode_utf8(shift @ARGV)) || die 'need a search term';
 my $offset = shift @ARGV || 1;
@@ -22,8 +24,12 @@ my @result =
   grep { $_->[1] =~ /$filter/i; }
   map  { [ $_, get_title_by_id($xmms, $_), $pos++ ] } get_playlist($xmms);
 
+if($do_list){
+    say encode_utf8($_->[1]) for @result;
+    exit 0;
+}
+
 if(my $result = ($result[$offset] || $result[0])) {
-    warn Dump($result);
     $xmms->playlist_set_next($result->[2]);
     $xmms->playback_tickle;
     $xmms->playlist->shuffle;
